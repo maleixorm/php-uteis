@@ -9,7 +9,11 @@
         $usuario = $sql_exec->fetch_assoc();
         $hash = $usuario['senha'];
         if(password_verify($senha, $hash)) {
-            echo "Usuário logado";
+            if (!isset($_SESSION)) {
+                session_start();
+                $_SESSION['usuario'] = $usuario['id'];
+                header("Location: index.php");
+            }
         } else {
             echo "Falha ao logar! Senha ou e-mail incorretos!";
         }
@@ -26,8 +30,14 @@
 <body>
     <h2>Login:</h2>
     <form action="" method="post">
-        <input type="email" name="email" id="">
-        <input type="password" name="senha" id="">
+        <div class="form-control">
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="">
+        </div>
+        <div class="form-control">
+            <label for="senha">Senha</label>
+            <input type="password" name="senha" id="">
+        </div>
         <button type="submit">Logar</button>
     </form>
 </body>
