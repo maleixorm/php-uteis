@@ -1,4 +1,7 @@
 <?php
+    include('conexao.php');
+
+
     if (isset($_FILES['arquivo'])) {
         $arquivo = $_FILES['arquivo'];
         if ($arquivo['error']) {
@@ -16,10 +19,13 @@
             die("Tipo de arquivo inválido! (Permitidos: jpg ou png)");
         }
 
-        $deuCerto = move_uploaded_file($arquivo['tmp_name'], $pasta . $novoNomeDoArquivo . "." . $extensao);
+        $path = $pasta . $novoNomeDoArquivo . "." . $extensao;
+
+        $deuCerto = move_uploaded_file($arquivo['tmp_name'], $path);
         
         if ($deuCerto) {
-            echo "<p class='message'>Arquivo enviado com sucesso! Para acessá-lo, <a href='$pasta/$novoNomeDoArquivo.$extensao' target='_blank'>clique aqui</a></p>";
+            $mysqli->query("INSERT INTO arquivos (nome, path) VALUES ('$nomeDoArquivo', '$path')") or die($mysqli->error);
+            echo "<p class='message'>Arquivo enviado com sucesso!";
         } else {
             die("Falha ao enviar arquivo");
         }
