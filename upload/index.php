@@ -1,17 +1,16 @@
 <?php
     include('conexao.php');
 
-
-    if (isset($_FILES['arquivo'])) {
-        $arquivo = $_FILES['arquivo'];
-        if ($arquivo['error']) {
+    function enviarArquivo($error, $size, $name, $tmp_data) {
+        include('conexao.php');
+        if ($error) {
             die("Falha ao enviar arquivo");
         }
-        if ($arquivo['size'] > 2097152) {
+        if ($size > 2097152) {
             die("Arquivo maior que o limite permitido para envio! (Limite: 2MB)");
         }
         $pasta = "arquivos/";
-        $nomeDoArquivo = $arquivo['name'];
+        $nomeDoArquivo = $name;
         $novoNomeDoArquivo = uniqid();
         $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION));
 
@@ -21,13 +20,29 @@
 
         $path = $pasta . $novoNomeDoArquivo . "." . $extensao;
 
-        $deuCerto = move_uploaded_file($arquivo['tmp_name'], $path);
+        $deuCerto = move_uploaded_file($tmp_data, $path);
         
         if ($deuCerto) {
             $mysqli->query("INSERT INTO arquivos (nome, path) VALUES ('$nomeDoArquivo', '$path')") or die($mysqli->error);
-            echo "<p class='message'>Arquivo enviado com sucesso!";
+            return true;
         } else {
-            die("Falha ao enviar arquivo");
+            return false;
+        }
+    }
+
+    if (isset($_FILES['arquivos'])) {
+        $arquivos = $_FILES['arquivos'];
+        $tudo_certo = true;
+        foreach ($arquivos['name'] as $index => $arq) {
+            $tudoCerto = enviarArquivo($arquivos['error'][$index], $arquivos['size'][$index], $arquivos['name'][$index], $arquivos['tmp_name'][$index]);
+            if (!$tudoCerto) {
+                $tudo_certo = false;
+            }
+        }
+        if ($tudo_certo) {
+            echo "Todos os arquivos foram enviados com sucesso!";
+        } else {
+            echo "<p>Falha ao enviar um ou mais arquivos</p>";
         }
     }
 
@@ -44,13 +59,14 @@
 <body>
     <form action="" method="post" enctype="multipart/form-data">
         <label for="">Selecione o arquivo:</label>
-        <input type="file" name="arquivo" id="">
+        <input multiple type="file" name="arquivos[]" id="">
         <button type="submit">Enviar arquivo</button>
     </form>
     <br>
     <h1>Lista de Arquivos</h1>
     <table border="1" cellpadding="10">
         <thead>
+            <th>Preview</th>
             <th>Arquivo</th>
             <th>Data de Envio</th>
         </thead>
@@ -59,7 +75,8 @@
                 while ($arquivo = $sql->fetch_assoc()) {
             ?>
                 <tr>
-                    <td><?= $arquivo['nome'] ?></td>
+                    <td><img src="<?= $arquivo['path']; ?>" width="50"></td>
+                    <td><a href="<?= $arquivo['path']; ?>" target="_blank"><?= $arquivo['nome'] ?></a></td>
                     <td><?= date("d/m/Y H:i", strtotime($arquivo['data_upload'])); ?></td>
                 </tr>
             <?php } ?>
