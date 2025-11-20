@@ -30,6 +30,8 @@
             die("Falha ao enviar arquivo");
         }
     }
+
+    $sql = $mysqli->query("SELECT * FROM arquivos") or die ($mysqli->error);
 ?>
 
 <!DOCTYPE html>
@@ -45,5 +47,25 @@
         <input type="file" name="arquivo" id="">
         <button type="submit">Enviar arquivo</button>
     </form>
+    <br>
+    <h1>Lista de Arquivos</h1>
+    <table border="1" cellpadding="10">
+        <thead>
+            <th>Arquivo</th>
+            <th>Data de Envio</th>
+        </thead>
+        <tbody>
+            <?php 
+                while ($arquivo = $sql->fetch_assoc()) {
+            ?>
+                <tr>
+                    <td><?= $arquivo['nome'] ?></td>
+                    <td><?= date("d/m/Y H:i", strtotime($arquivo['data_upload'])); ?></td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+
+    
 </body>
 </html>
