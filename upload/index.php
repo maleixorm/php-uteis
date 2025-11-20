@@ -1,6 +1,18 @@
 <?php
     include('conexao.php');
 
+    if (isset($_GET['deletar'])) {
+        $id = intval($_GET['deletar']);
+        $sql = $mysqli->query("SELECT * FROM arquivos WHERE id = '$id'") or die ($mysqli->error);
+        $arquivo = $sql->fetch_assoc();
+        if (unlink($arquivo['path'])) {
+            $delete = $mysqli->query("DELETE FROM arquivos WHERE id = '$id'") or die ($mysqli->error);
+            if ($delete) {
+                echo "<p>Arquivo excluído com sucesso!</p>";
+            }
+        } 
+    }
+
     function enviarArquivo($error, $size, $name, $tmp_data) {
         include('conexao.php');
         if ($error) {
@@ -40,7 +52,7 @@
             }
         }
         if ($tudo_certo) {
-            echo "Todos os arquivos foram enviados com sucesso!";
+            echo "<p>Todos os arquivos foram enviados com sucesso!</p>";
         } else {
             echo "<p>Falha ao enviar um ou mais arquivos</p>";
         }
@@ -69,6 +81,7 @@
             <th>Preview</th>
             <th>Arquivo</th>
             <th>Data de Envio</th>
+            <th>Deletar</th>
         </thead>
         <tbody>
             <?php 
@@ -78,6 +91,7 @@
                     <td><img src="<?= $arquivo['path']; ?>" width="50"></td>
                     <td><a href="<?= $arquivo['path']; ?>" target="_blank"><?= $arquivo['nome'] ?></a></td>
                     <td><?= date("d/m/Y H:i", strtotime($arquivo['data_upload'])); ?></td>
+                    <td><a href="index.php?deletar=<?= $arquivo['id']; ?>">Deletar</a></td>
                 </tr>
             <?php } ?>
         </tbody>
